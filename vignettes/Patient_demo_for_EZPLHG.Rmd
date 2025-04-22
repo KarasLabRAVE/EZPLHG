@@ -1,0 +1,83 @@
+---
+title: "Patient demo for EZPLHG"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Patient demo for EZPLHG}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(EZPLHG)
+```
+
+This is a patient demo on how to use the EZPLHG package.
+It calculates the Phase-Locked High Gamma values for ictal iEEG.
+Sustained, repetitive transient increases in high gamma (80–150 Hz) amplitude, phase-locked to the low-frequency (1–25 Hz) ictal rhythm, correlated with strong multi-unit firing bursts synchronized across the core territory of the seizure.
+The method is based on the paper by Weiss et al. 2013. <a href="https://pubmed.ncbi.nlm.nih.gov/24176977/" style="color:blue; text-decoration:none;"> Ictal high frequency oscillations distinguish two types of seizure territories in humans. Brain.</a>
+
+## Load small ictal ieeg data for patient PT01
+
+This data corresponds to the first seizure of patient PT01 from the Fragility Data Set. The data contains only the good channels. It has been notch filtered and common average referenced in RAVE It has been epoched -30:30s around the seizure onset The acquisition frequency is 1000 Hz EcoG recording gathered in collaboration with the National Institute of Health. A Matrix with 20001 rows (time points) and 84 columns (electrodes).
+
+```{r ictal_data}
+data("PT01Epochm30sp30s")
+```
+
+Electrode data
+```{r electrode_data}
+data("ElectrodesDataPT01")
+head(ElectrodesDataPT01,n=10)
+
+```
+
+## Plot Raw signal for patient PT01 for electrodes marked as soz
+```{r plot_raw,out.width="80%"}
+displayChannels=which(ElectrodesDataPT01$insoz==TRUE)
+scaling=1000000
+visuiEEGdata(ieegts=PT01Epochm30sp30s,scaling=scaling, displayChannels = displayChannels)
+```
+
+## Compute the Phase Locked High Gamma matrix 
+```{r run_plhg,eval=FALSE}
+data("PT01Epochm30sp30s")
+sizeWindow <- 3000
+sizeSkip <- 333
+fs=1000
+tBaseline=20
+time_window_ictal=c(-10,10)
+time_window=c(-30,30)
+resPLHG<-calc_PLHG(ieegts = PT01Epochm30sp30s, sizeWindow=sizeWindow, sizeSkip=sizeSkip,fs=fs,tBaseline=tBaseline,time_window=time_window,time_window_ictal=time_window_ictal)
+```
+
+## Plot heatmap of the phase locked high gamma values 
+```{r plot heatmap,out.width="100%"}
+data("PT01Epochm30sp30s")
+data("ElectrodesDataPT01")
+data("resPLHG")
+ElectrodesData=ElectrodesDataPT01
+time_window_ictal=c(-10,10)
+subject_code='PT01'
+j=1
+heatmap_PLHG(plhgMaster=resPLHG[[1]], ElectrodesData=ElectrodesDataPT01,ieegts=PT01Epochm30sp30s,time_window_ictal,subject_code,j)
+```
+
+## Vote Threshold
+```{r vote threshold}
+data("ElectrodesDataPT01")
+data("resPLHG")
+ElectrodesData=ElectrodesDataPT01
+time_window_ictal=c(-10,10)
+subject_code='PT01'
+j=1
+fs=1000
+resvotethres<-votethres(resPLHG=resPLHG,fs=fs,ElectrodesData=ElectrodesData,time_window_ictal=time_window_ictal)
+ictalcore=which(resvotethres$votethres==1)
+```
