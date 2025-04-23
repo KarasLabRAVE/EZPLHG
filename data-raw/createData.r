@@ -21,12 +21,17 @@ times <- seq(-30, 30, length.out=ncol(pt01EpochRaw))
 times_with_sign <- ifelse(times >= 0, paste0("+", times), as.character(times))
 colnames(pt01EpochRaw)<-times_with_sign
 
-display <- c(sozIndex, 77:80)
+display <- c(sozIndex, 75:82)
 pt01EcoG<-pt01EpochRaw[display,1:50001]
 sozIndex<-c(1:10)
 attr(pt01EcoG, "sozIndex") <- sozIndex
 attr(pt01EcoG, "sozNames") <- sozNames
 usethis::use_data(pt01EcoG, overwrite = TRUE)
+
+epoch <- Epoch(pt01EcoG)
+pt01PLHG<-calc_PLHG(epoch)
+
+usethis::use_data(pt01PLHG, overwrite = TRUE)
 
 
 

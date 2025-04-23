@@ -134,10 +134,13 @@ calc_PLHG <- function(epoch, fs=1000, sizeWindow=3000, sizeSkip=333, plhgTimeWin
 
   plhg<-t(plhgMaster)
 
-  return(list(
-    plhg=plhg,
-    timeVals=timeVals
-  ))
+  startTimes<-timeVals/fs
+
+  PLHG(
+    plhg = plhg,
+    startTimes = startTimes,
+    electrodes = epoch$electrodes
+  )
 
 
 

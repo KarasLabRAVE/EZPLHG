@@ -2,6 +2,7 @@
 
 export(Epoch)
 export(calc_PLHG)
+export(plotPLHGHeatmap)
 export(truncateTime)
 export(visuIEEGData)
 exportMethods("$")
