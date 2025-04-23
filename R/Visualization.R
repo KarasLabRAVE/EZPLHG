@@ -1,98 +1,61 @@
-#' Visualization iEEGData
+#' Visualization of ictal iEEG
 #'
-#' @param ieegts Numeric. A matrix of iEEG time series x(t),
-#' with time points as rows and electrodes names as columns
-#' @param scaling Scaling factor
-#' @param displayChannels Channels to display
-#'
-#' @return plot raw signal
-#' @export
+#' @return A ggplot object
 #'
 #' @examples
-#' data("PT01Epochm30sp30s")
-#' data("ElectrodesDataPT01")
-#' displayChannels=which(ElectrodesDataPT01$insoz==TRUE)
-#' visuiEEGdata(ieegts=PT01Epochm30sp30s,1000000, displayChannels = displayChannels)
-visuiEEGdata<-function( ieegts, scaling, displayChannels){
-
-
-  plotData<-ieegts[,displayChannels]/scaling
-  gaps<-2
-  displayNames=colnames(ieegts)[displayChannels]
-
-  for(i in seq_along(plotData)){
-    plotData[, i] <- (plotData[, i]- mean(plotData[, i]))+
-      (ncol(plotData)-i)*gaps
-  }
-
-  plot(plotData[, 1],type="l" ,cex=0.1,
-       ylim = range(plotData), yaxt = "n")
-  for(i in 2:ncol(plotData)){
-    lines(plotData[, i])
-  }
-  axis(2, at = rev(seq_along(displayChannels) - 1)*gaps,
-       labels = displayNames,las=1)
-
-
-}
-
-
-#' Heatmap visualization
+#' data("pt01EcoG")
 #'
-#' @param resPLHG Matrix result of PLHG
-#' @param ElectrodesData Electrodes data
-#' @param ieegts Numeric. A matrix of iEEG time series x(t),
-#' with time points as rows and electrodes names as columns
-#' @param time_window_ictal Fragility heatmap time window around seizure onset
-#' @param subject_code patient name
-#' @param j seizure number
+#' ## Visualize a subject of electrodes
+#' sozIndex <- attr(pt01EcoG, "sozIndex")
+#' display <- c(sozIndex, 77:80)
 #'
-#' @return Heatmap plot of the PLHG matrix with soz electrodes in blue in the bottom
+#' epoch <- Epoch(pt01EcoG)
+#' visuIEEGData(epoch = epoch[display, ])
 #' @export
-#'
-#' @examples
-#' data("PT01Epochm30sp30s")
-#'data("ElectrodesDataPT01")
-#'data("resPLHG")
-#'ElectrodesData=ElectrodesDataPT01
-#'time_window_ictal=c(-10,10)
-#'subject_code='PT01'
-#'j=1
-#'heatmap_PLHG(plhgMaster=resPLHG[[1]], ElectrodesData=ElectrodesDataPT01,ieegts=PT01Epochm30sp30s,time_window_ictal,subject_code,j)
-heatmap_PLHG<-function(plhgMaster, ElectrodesData,ieegts,time_window_ictal,subject_code,j){
+visuIEEGData <- function(epoch) {
+  if (is(epoch, "matrix")){
+    epoch <- Epoch(epoch)
+  }
+
+  gaps <- 2
+
+  elecNames <- epoch$electrodes
+  data <- epoch$data
+  elecNum <- nrow(data)
+  timesNum <- ncol(data)
+
+  plotData <- standardizeIEEG(data)
+
+  times <- epoch$times
+  if (is.null(times)) {
+    xlabel <- "Time Index"
+    timeTicks <- seq_len(timesNum)
+  } else {
+    xlabel <- "Time (s)"
+    timeTicks <- times
+  }
+
+  plotData <- apply(plotData, 1, function(x) x - mean(x))
+  plotData <- as.data.frame(plotData)
+  plotData$timeTicks <- timeTicks
+  breakplot <- (seq_len(elecNum) - 1) * gaps
+
+  elecNamesReversed <- rev(elecNames)
+
+  ## add gaps between electrodes
+  for (i in seq_along(elecNamesReversed)) {
+    elec <- elecNamesReversed[i]
+    plotData[[elec]] <- plotData[[elec]] + (i-1) * gaps
+  }
 
 
-  titlepng=paste(subject_code,'Seizure',as.character(j),sep=" ")
-  elecsoz=which(ElectrodesData$insoz==TRUE)
-  elecsozc=which(ElectrodesData$insoz==FALSE)
-  elecsozsozc=c(elecsoz,elecsozc)
+  p <- ggplot2::ggplot(data = plotData)
+  for (i in seq_along(elecNamesReversed)) {
+    elec <- elecNamesReversed[i]
+    p <- p + ggplot2::geom_line(ggplot2::aes(x = .data$timeTicks, y = .data[[elec]]))
+  }
 
-  elecnum <- colnames(ieegts)[elecsozsozc]
-  n_elec <- ncol(ieegts)
-  nw<- nrow(plhgMaster)
-  colorelec<-elecnum
-  nsoz=length(elecsoz)
-  colorelec[1:n_elec]="black"
-  colorelec[1:nsoz]="blue"
-
-  plhgord<-plhgMaster[,elecsozsozc]
-  stimes=c(1:nw)*(time_window_ictal[2]-time_window_ictal[1])/nw+time_window_ictal[1]
-  rownames(plhgord)<-stimes
-  elecnum<-colnames(plhgord)
-
-  plhgmap_data <- expand.grid(Time = stimes, Electrode = elecnum)
-  plhgmap_data$Value <- c(plhgord)
-
-  ggplot2::ggplot(plhgmap_data, ggplot2::aes(x = Time, y = Electrode, fill = Value)) +
-    ggplot2::geom_tile() +
-    ggplot2::ggtitle(titlepng)+
-    ggplot2::labs(x = "Time (s)", y = "Electrode",size=2) +
-    viridis::scale_fill_viridis(option = "turbo") +  #
-
-    ggplot2::theme_minimal() +
-    ggplot2::theme(
-      axis.text.y = ggplot2::element_text(size=3,colour=colorelec),     # Adjust depending on electrodes
-    )
-
-
+  p +
+    ggplot2::labs(x = xlabel, y = "Electrode", size = 2) +
+    ggplot2::scale_y_continuous(labels = elecNamesReversed, breaks = breakplot)
 }
