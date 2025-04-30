@@ -2,16 +2,20 @@
     "PLHG",
     slots = list(
         plhg= "matrix",
+        voteThres= "numeric",
+        sigTime = "numeric",
         startTimes = "numeric",
         electrodes = "character"
     )
 )
 
 
-PLHG<- function(plhg, startTimes, electrodes) {
+PLHG<- function(plhg, voteThres, sigTime, startTimes, electrodes) {
 
   .PLHG(
     plhg = plhg,
+    voteThres = voteThres,
+    sigTime = sigTime,
     startTimes = startTimes,
     electrodes = electrodes
   )
@@ -25,7 +29,7 @@ PLHG<- function(plhg, startTimes, electrodes) {
 #' @export
 setMethod("show", "PLHG", function(object) {
   cat("\nPLHG object\n")
-    slots <- c("plhg","startTimes","electrodes")
+    slots <- c("plhg", "voteThres", "sigTime","startTimes","electrodes")
   printSlots(object, slots = slots)
   cat("Use '$attr' to access the data\n")
   invisible(object)
@@ -68,10 +72,14 @@ setMethod("[", "PLHG", function(x, i, j, ..., drop = FALSE) {
   }
 
   plhg_subset <- x@plhg[i, j, drop = FALSE]
+  voteThres_subset <-x@voteThres[i]
+  sigTime_subset<-x@sigTime[i]
   startTimes_subset <- x@startTimes[j]
   electrodes_subset <- x@electrodes[i]
   .PLHG(
     plhg = plhg_subset,
+    voteThres = voteThres_subset,
+    sigTime = sigTime_subset,
     startTimes = startTimes_subset,
     electrodes = electrodes_subset,
   )

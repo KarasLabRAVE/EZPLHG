@@ -136,8 +136,36 @@ calc_PLHG <- function(epoch, fs=1000, sizeWindow=3000, sizeSkip=333, plhgTimeWin
 
   startTimes<-timeVals/fs
 
+  maxVal<-apply(plhgMaster,2,max)
+  mu<-mean(maxVal)
+  sigma<-sd(maxVal)
+  coeffVar<-sigma/mu
+  mu=mean(plhgMaster)
+  sigma<-sd(plhgMaster)
+  sigThres<-mu+sigma*2.5
+  sigLeads<-maxVal>sigThres
+
+  voteThres   <- vector(mode="numeric", length=elecNum)
+  sigTime   <- vector(mode="numeric", length=elecNum)
+
+  for(jj in 1:elecNum){
+    sigTime[jj]=NaN
+    if(sigLeads[jj]==TRUE){
+      voteThres[jj]=1
+    }
+    currentInd<-which(plhgMaster[,jj]>=sigThres)
+    if(length(currentInd)>0){
+      #print(jj)
+      sigTime[jj]=timeVals[currentInd[1]]/fs
+    }
+  }
+
+
+
   PLHG(
     plhg = plhg,
+    voteThres = voteThres,
+    sigTime = sigTime,
     startTimes = startTimes,
     electrodes = epoch$electrodes
   )
