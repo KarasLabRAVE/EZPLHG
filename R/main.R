@@ -17,13 +17,13 @@ standardizeIEEG <- function(data) {
 #' pt01plhg<-calc_PLHG(epoch)
 calc_PLHG <- function(epoch, fs=1000, sizeWindow=3000, sizeSkip=333, plhgTimeWindow=c(0,20), baseTimeWindow=c(-30,-20)){
 
-
+  timeSeries<-tblData(epoch)
   np<-reticulate::import('numpy')
-  timeNum <- ncol(epoch)
-  timesOnset<-epoch$times
+  timeNum <- ncol(timeSeries)
+  timesOnset<-as.numeric(colnames(timeSeries))
   nyquist <- fs/2
   transitionWidth <- 0.1
-  elecNum <- nrow(epoch)
+  elecNum <- nrow(timeSeries)
 
   startBaseIndex<-which.min(abs(timesOnset - baseTimeWindow[1]))
   endBaseIndex<-which.min(abs(timesOnset - baseTimeWindow[2]))
@@ -33,8 +33,8 @@ calc_PLHG <- function(epoch, fs=1000, sizeWindow=3000, sizeSkip=333, plhgTimeWin
 
   timesOnset<-timesOnset[startEpochIndex:endEpochIndex]
 
-  tsBaseline<-t(epoch$data[,startBaseIndex:endBaseIndex])
-  tsIctal<-t(epoch$data[,startEpochIndex:endEpochIndex])
+  tsBaseline<-t(timeSeries[,startBaseIndex:endBaseIndex])
+  tsIctal<-t(timeSeries[,startEpochIndex:endEpochIndex])
 
   nt<-endEpochIndex-startEpochIndex+1
 
@@ -167,7 +167,7 @@ calc_PLHG <- function(epoch, fs=1000, sizeWindow=3000, sizeSkip=333, plhgTimeWin
     voteThres = voteThres,
     sigTime = sigTime,
     startTimes = startTimes,
-    electrodes = epoch$electrodes
+    electrodes =  rownames(timeSeries)
   )
 
 
