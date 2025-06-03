@@ -75,7 +75,7 @@ plotPLHGHeatmap <- function(
   elecColor <- rep("blue", elecNum)
   elecColor[seq_along(group2)] <- "black"
 
-  startTime <- plhg$startTimes
+  startTime <- round(plhg$startTimes,1)
   if (is.null(startTime)) {
     xlabel <- "Time Index"
     stimes <- seq_len(windowNum)
