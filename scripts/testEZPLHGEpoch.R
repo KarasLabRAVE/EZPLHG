@@ -14,7 +14,9 @@ display <- c(sozIndex, 77:80)
 pt01sz1m30p20s14e<-pt01sz1m30p20s[display,]
 sozIndex14e<-which(pt01sz1m30p20s14e@rowData$soz==TRUE)
 
-pt01PLHG<-calc_PLHG(epoch=pt01sz1m30p20s14e)
+fspat=1000
+
+pt01PLHG<-calc_PLHG(epoch=pt01sz1m30p20s14e, fs=fspat)
 
 
 plotPLHG<-plotPLHGHeatmap(plhg=pt01PLHG,sozIndex=sozIndex14e)

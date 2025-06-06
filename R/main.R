@@ -15,14 +15,16 @@ standardizeIEEG <- function(data) {
 #' data("pt01EcoG")
 #' epoch <- Epoch(pt01EcoG)
 #' pt01plhg<-calc_PLHG(epoch)
-calc_PLHG <- function(epoch, fs=1000, sizeWindow=3000, sizeSkip=333, plhgTimeWindow=c(0,20), baseTimeWindow=c(-30,-20)){
+calc_PLHG <- function(epoch, fs=1000,  plhgTimeWindow=c(0,20), baseTimeWindow=c(-30,-20)){
 
   timeSeries<-tblData(epoch)
   np<-reticulate::import('numpy')
   timeNum <- ncol(timeSeries)
   timesOnset<-as.numeric(colnames(timeSeries))
   nyquist <- fs/2
-  transitionWidth <- 0.1
+  sizeWindow<-fs*3
+  sizeSkip<-fs/3
+  transitionWidth <- 0.1*fs/1000
   elecNum <- nrow(timeSeries)
 
   startBaseIndex<-which.min(abs(timesOnset - baseTimeWindow[1]))
